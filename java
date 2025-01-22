@@ -339,3 +339,27 @@ public Card updateCard(@PathVariable Long id, @RequestBody Card card) {
     }
 }
 
+
+
+import { Card, Button } from "react-bootstrap";
+import { Link } from "react-router-dom";
+
+function GetCard({ id, title, description, image, onDelete }) {
+    return (
+        <Card style={{ width: "18rem", margin: "10px" }}>
+            {image && <Card.Img variant="top" src={image} />}
+            <Card.Body>
+                <Card.Title>{title}</Card.Title>
+                <Card.Text>{description}</Card.Text>
+                <div className="d-flex justify-content-between">
+                    <Link to="/create" state={{ id, title, description, image }}>
+                        <Button variant="primary">Update</Button>
+                    </Link>
+                    <Button variant="danger" onClick={() => onDelete(id)}>Delete</Button>
+                </div>
+            </Card.Body>
+        </Card>
+    );
+}
+
+export default GetCard;
