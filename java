@@ -111,3 +111,58 @@ spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 spring.jpa.database-platform=org.hibernate.dialect.MySQL8Dialect
+
+
+
+
+fe
+
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Container, Button, Form } from "react-bootstrap";
+import { createCard, updateCard } from "../api";
+
+function Create() {
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [image, setImage] = useState("");
+    const [id, setId] = useState(null);
+
+    useEffect(() => {
+        if (location.state) {
+            setId(location.state.id);
+            setTitle(location.state.title);
+            setDescription(location.state.description);
+            setImage(location.state.image);
+        }
+    }, [location.state]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (id) await updateCard(id, { title, description, image });
+        else await createCard({ title, description, image });
+        navigate("/");
+    };
+
+    return (
+        <Container>
+            <h2>{id ? "Edit Card" : "Create Card"}</h2>
+            <Form onSubmit={handleSubmit}>
+                <Form.Group>
+                    <Form.Label>Title</Form.Label>
+                    <Form.Control value={title} onChange={(e) => setTitle(e.target.value)} required />
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label>Description</Form.Label>
+                    <Form.Control value={description} onChange={(e) => setDescription(e.target.value)} required />
+                </Form.Group>
+                <Button type="submit">{id ? "Update" : "Create"}</Button>
+            </Form>
+        </Container>
+    );
+}
+
+export default Create;
