@@ -25,3 +25,34 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CardRepository extends JpaRepository<Card, Long> { }
+
+
+package com.example.cardapi.service;
+
+import com.example.cardapi.model.Card;
+import com.example.cardapi.repository.CardRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+@Service
+public class CardService {
+    @Autowired
+    private CardRepository cardRepository;
+
+    public List<Card> getAllCards() {
+        return cardRepository.findAll();
+    }
+
+    public Card getCardById(Long id) {
+        return cardRepository.findById(id).orElse(null);
+    }
+
+    public Card saveCard(Card card) {
+        return cardRepository.save(card);
+    }
+
+    public void deleteCard(Long id) {
+        cardRepository.deleteById(id);
+    }
+}
