@@ -1,4 +1,4 @@
-⁹package com.example.cardapi.model;
+package com.example.cardapi.model;
 
 import jakarta.persistence.*;
 
@@ -325,4 +325,17 @@ public class Card {
     }
 }
 
+
+@PutMapping("/{id}")
+public Card updateCard(@PathVariable Long id, @RequestBody Card card) {
+    Card existingCard = cardService.getCardById(id);
+    if (existingCard != null) {
+        existingCard.setTitle(card.getTitle());
+        existingCard.setDescription(card.getDescription());
+        existingCard.setImage(card.getImage());
+        return cardService.saveCard(existingCard);
+    } else {
+        throw new RuntimeException("Card not found with id: " + id);
+    }
+}
 
