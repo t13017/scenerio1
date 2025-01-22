@@ -56,3 +56,47 @@ public class CardService {
         cardRepository.deleteById(id);
     }
 }
+
+
+package com.example.cardapi.controller;
+
+import com.example.cardapi.model.Card;
+import com.example.cardapi.service.CardService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/cards")
+@CrossOrigin(origins = "http://localhost:3000")
+public class CardController {
+
+    @Autowired
+    private CardService cardService;
+
+    @GetMapping
+    public List<Card> getAllCards() {
+        return cardService.getAllCards();
+    }
+
+    @PostMapping
+    public Card createCard(@RequestBody Card card) {
+        return cardService.saveCard(card);
+    }
+
+    @PutMapping("/{id}")
+    public Card updateCard(@PathVariable Long id, @RequestBody Card card) {
+        Card existingCard = cardService.getCardById(id);
+        existingCard.setTitle(card.getTitle());
+        existingCard.setDescription(card.getDescription());
+        existingCard.setImage(card.getImage());
+        return cardService.saveCard(existingCard);
+    }
+
+    @DeleteMapping("/{id}")
+    public String deleteCard(@PathVariable Long id) {
+        cardService.deleteCard(id);
+        return "Card deleted successfully";
+    }
+}
