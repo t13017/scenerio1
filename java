@@ -177,3 +177,46 @@ export const getAllCards = () => axios.get(API_URL);
 export const createCard = (card) => axios.post(API_URL, card);
 export const updateCard = (id, card) => axios.put(`${API_URL}/${id}`, card);
 export const deleteCard = (id) => axios.delete(`${API_URL}/${id}`);
+
+
+
+import { useEffect, useState } from "react";
+import { Container, Row, Col } from "react-bootstrap";
+import GetCard from "./GetCard";
+import { getAllCards, deleteCard } from "../api";
+
+function HomePage() {
+    const [cards, setCards] = useState([]);
+
+    useEffect(() => {
+        fetchCards();
+    }, []);
+
+    const fetchCards = async () => {
+        const response = await getAllCards();
+        setCards(response.data);
+    };
+
+    const handleDelete = async (id) => {
+        if (window.confirm("Are you sure you want to delete this card?")) {
+            await deleteCard(id);
+            fetchCards();
+        }
+    };
+
+    return (
+        <Container>
+            <h2 className="my-4 text-center">Card Collection</h2>
+            <Row>
+                {cards.map((card) => (
+                    <Col key={card.id} md={4}>
+                        <GetCard {...card} onDelete={handleDelete} />
+                    </Col>
+                ))}
+            </Row>
+        </Container>
+    );
+}
+
+export default HomePage;
+
