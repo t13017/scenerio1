@@ -372,3 +372,109 @@ function GetCard({ cards, onDelete }) {
 
 export default GetCard;
 
+
+
+
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Container, Button, Form, Alert } from "react-bootstrap";
+import { createCard, updateCard } from "../api";
+
+function Create() {
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [image, setImage] = useState("");
+    const [imagePreview, setImagePreview] = useState("");
+    const [id, setId] = useState(null);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        if (location.state) {
+            setId(location.state.id);
+            setTitle(location.state.title);
+            setDescription(location.state.description);
+            setImage(location.state.image);
+            setImagePreview(location.state.image); // Show preview if editing
+        }
+    }, [location.state]);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImage(reader.result);
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            if (!title || !description) {
+                setError("Title and Description are required.");
+                return;
+            }
+            if (id) {
+                await updateCard(id, { title, description, image });
+            } else {
+                await createCard({ title, description, image });
+            }
+            navigate("/");
+        } catch (err) {
+            setError("An error occurred while saving the card.");
+            console.error(err);
+        }
+    };
+
+    return (
+        <Container>
+            <h2 className="my-4">{id ? "Edit Card" : "Create Card"}</h2>
+            {error && <Alert variant="danger">{error}</Alert>}
+            <Form onSubmit={handleSubmit}>
+                <Form.Group className="mb-3">
+                    <Form.Label>Title</Form.Label>
+                    <Form.Control
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        required
+                    />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                    <Form.Label>Description</Form.Label>
+                    <Form.Control
+                        as="textarea"
+                        rows={3}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        required
+                    />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                    <Form.Label>Image</Form.Label>
+                    <Form.Control type="file" accept="image/*" onChange={handleImageChange} />
+                    {imagePreview && (
+                        <div className="mt-3">
+                            <img src={imagePreview} alt="Preview" width="100%" style={{ maxWidth: "300px" }} />
+                        </div>
+                    )}
+                </Form.Group>
+
+                <Button variant="primary" type="submit">
+                    {id ? "Update" : "Create"}
+                </Button>
+            </Form>
+        </Container>
+    );
+}
+
+export default Create;
+
