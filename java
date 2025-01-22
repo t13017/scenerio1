@@ -478,3 +478,68 @@ function Create() {
 
 export default Create;
 
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import java.io.IOException;
+import java.util.List;
+
+@RestController
+@RequestMapping("/cards")
+public class CardController {
+    
+    private final CardService cardService;
+
+    public CardController(CardService cardService) {
+        this.cardService = cardService;
+    }
+
+    // Create a new card with an image
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<Card> createCard(
+            @RequestParam("title") String title,
+            @RequestParam("description") String description,
+            @RequestParam(value = "image", required = false) MultipartFile imageFile) {
+
+        try {
+            byte[] imageBytes = (imageFile != null) ? imageFile.getBytes() : null;
+            Card card = new Card(null, title, description, imageBytes);
+            return ResponseEntity.status(HttpStatus.CREATED).body(cardService.saveCard(card));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Retrieve all cards
+    @GetMapping
+    public ResponseEntity<List<Card>> getAllCards() {
+        return ResponseEntity.ok(cardService.getAllCards());
+    }
+
+    // Update a card (title, description, image)
+    @PutMapping("/{id}")
+    public ResponseEntity<Card> updateCard(
+            @PathVariable Long id,
+            @RequestParam("title") String title,
+            @RequestParam("description") String description,
+            @RequestParam(value = "image", required = false) MultipartFile imageFile) {
+
+        try {
+            Card existingCard = cardService.getCardById(id);
+            if (existingCard == null) {
+                return ResponseEntity.notFound().build();
+            }
+            existingCard.setTitle(title);
+            existingCard.setDescription(description);
+
+            if (imageFile != null) {
+                existingCard.setImage(imageFile.getBytes());
+            }
+
+            return ResponseEntity.ok(cardService.saveCard(existingCard));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+}
