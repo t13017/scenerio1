@@ -570,3 +570,39 @@ public class CardService {
         return cardRepository.findById(id).orElse(null);
     }
 }
+
+
+import axios from "axios";
+
+const API_URL = "http://localhost:8080/cards";
+
+// Create a new card (with image upload)
+export const createCard = async (cardData) => {
+    const formData = new FormData();
+    formData.append("title", cardData.title);
+    formData.append("description", cardData.description);
+    if (cardData.image) {
+        formData.append("image", cardData.image);
+    }
+
+    return axios.post(API_URL, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+};
+
+// Update a card (with image upload)
+export const updateCard = async (id, cardData) => {
+    const formData = new FormData();
+    formData.append("title", cardData.title);
+    formData.append("description", cardData.description);
+    if (cardData.image) {
+        formData.append("image", cardData.image);
+    }
+
+    return axios.put(`${API_URL}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+};
+
+// Get all cards
+export const getAllCards = () => axios.get(API_URL);
