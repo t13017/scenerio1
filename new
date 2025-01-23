@@ -48,3 +48,39 @@ function Create({ cardToEdit, onSubmit }) {
 }
 
 export default Create;
+
+
+
+import { useState } from "react";
+import Create from "./Create";
+import GetCard from "./GetCard"; 
+import { getAllCards, deleteCard } from "../api";
+
+function HomePage() {
+    const [cards, setCards] = useState([]);
+    const [editingCard, setEditingCard] = useState(null);
+
+    const fetchCards = async () => {
+        setCards(await getAllCards());
+    };
+
+    return (
+        <div>
+            <button onClick={() => setEditingCard(null)}>Create New Card</button>
+            <Create cardToEdit={editingCard} onSubmit={fetchCards} />
+            <div className="card-container">
+                {cards.map((card) => (
+                    <GetCard key={card.id} {...card} 
+                        onEdit={setEditingCard} 
+                        onDelete={async (id) => {
+                            await deleteCard(id);
+                            fetchCards();
+                        }} 
+                    />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+export default HomePage;
