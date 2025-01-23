@@ -70,3 +70,97 @@ function Create() {
 }
 
 export default Create;
+
+
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Container, Button, Form, Alert } from "react-bootstrap";
+import { createCard, updateCard } from "../api";
+
+function Create() {
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const [formData, setFormData] = useState({
+        title: "",
+        description: "",
+    });
+    const [id, setId] = useState(null);
+    const [error, setError] = useState("");
+
+    // Update form data when location state is available
+    useEffect(() => {
+        if (location.state) {
+            const { id, title, description } = location.state;
+            setId(id);
+            setFormData({ title, description });
+        }
+    }, [location.state]);
+
+    // Handle form input change
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+    };
+
+    // Handle form submission with short-circuiting
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        const { title, description } = formData;
+
+        // Short-circuit error handling and prevent submission if validation fails
+        if (!title || !description) return setError("Title and Description are required.");
+
+        try {
+            // Proceed with create or update action based on the presence of an ID
+            id ? await updateCard(id, { title, description }) : await createCard({ title, description });
+
+            navigate("/"); // Redirect after successful operation
+        } catch (err) {
+            setError("An error occurred while saving the card.");
+            console.error(err);
+        }
+    };
+
+    return (
+        <Container>
+            <h2 className="my-4">{id ? "Edit Card" : "Create Card"}</h2>
+            {error && <Alert variant="danger">{error}</Alert>}
+            <Form onSubmit={handleSubmit}>
+                <Form.Group className="mb-3">
+                    <Form.Label>Title</Form.Label>
+                    <Form.Control
+                        type="text"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        required
+                    />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                    <Form.Label>Description</Form.Label>
+                    <Form.Control
+                        as="textarea"
+                        rows={3}
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        required
+                    />
+                </Form.Group>
+
+                <Button variant="primary" type="submit">
+                    {id ? "Update" : "Create"}
+                </Button>
+            </Form>
+        </Container>
+    );
+}
+
+export default Create;
+
