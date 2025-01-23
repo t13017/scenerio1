@@ -1,150 +1,69 @@
-import { useEffect, useRef } from "react";
-import { Container, Button, Form } from "react-bootstrap";
-import { createCard, updateCard } from "../api";
-
-function Create({ cardToEdit, onSubmit }) {
-    const formRef = useRef(null);
-
-    useEffect(() => {
-        if (cardToEdit && formRef.current) {
-            formRef.current.title.value = cardToEdit.title || "";
-            formRef.current.description.value = cardToEdit.description || "";
-        }
-    }, [cardToEdit]);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const formData = new FormData(formRef.current);
-        
-        if (cardToEdit?.id) {
-            await updateCard(cardToEdit.id, formData);
-        } else {
-            await createCard(formData);
-        }
-
-        onSubmit(); // Callback to refresh data
-    };
-
-    return (
-        <Container>
-            <h2>{cardToEdit ? "Edit Card" : "Create Card"}</h2>
-            <Form ref={formRef} onSubmit={handleSubmit}>
-                <Form.Group>
-                    <Form.Label>Title</Form.Label>
-                    <Form.Control name="title" required />
-                </Form.Group>
-                <Form.Group>
-                    <Form.Label>Description</Form.Label>
-                    <Form.Control name="description" required />
-                </Form.Group>
-                <Form.Group>
-                    <Form.Label>Image</Form.Label>
-                    <Form.Control type="file" name="image" />
-                </Form.Group>
-                <Button type="submit">{cardToEdit ? "Update" : "Create"}</Button>
-            </Form>
-        </Container>
-    );
-}
-
-export default Create;
-
-
-
-import { useState } from "react";
-import Create from "./Create";
-import GetCard from "./GetCard"; 
-import { getAllCards, deleteCard } from "../api";
-
-function HomePage() {
-    const [cards, setCards] = useState([]);
-    const [editingCard, setEditingCard] = useState(null);
-
-    const fetchCards = async () => {
-        setCards(await getAllCards());
-    };
-
-    return (
-        <div>
-            <button onClick={() => setEditingCard(null)}>Create New Card</button>
-            <Create cardToEdit={editingCard} onSubmit={fetchCards} />
-            <div className="card-container">
-                {cards.map((card) => (
-                    <GetCard key={card.id} {...card} 
-                        onEdit={setEditingCard} 
-                        onDelete={async (id) => {
-                            await deleteCard(id);
-                            fetchCards();
-                        }} 
-                    />
-                ))}
-            </div>
-        </div>
-    );
-}
-
-export default HomePage;
-
-
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Container, Button, Form } from "react-bootstrap";
-import { createCard, updateCard } from "../api"; // Import API functions
+import { createCard, updateCard } from "../api";
 
 function Create() {
     const navigate = useNavigate();
     const location = useLocation();
-    const cardToEdit = location.state || {}; // Get existing data if updating
+    const existingCard = location.state || {}; // Check if editing an existing card
 
-    // State to store form inputs
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [image, setImage] = useState(null);
+    // State for form inputs
+    const [formData, setFormData] = useState({
+        title: "",
+        description: "",
+        image: null
+    });
 
-    // Fill form if editing
+    // Prefill form when editing
     useEffect(() => {
-        if (cardToEdit.id) {
-            setTitle(cardToEdit.title);
-            setDescription(cardToEdit.description);
+        if (existingCard.id) {
+            setFormData({
+                title: existingCard.title,
+                description: existingCard.description,
+                image: null
+            });
         }
-    }, [cardToEdit]);
+    }, [existingCard]);
+
+    // Handle input changes
+    const handleChange = (e) => {
+        const { name, value, files } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: files ? files[0] : value // Handle file separately
+        }));
+    };
 
     // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const data = new FormData();
+        data.append("title", formData.title);
+        data.append("description", formData.description);
+        if (formData.image) data.append("image", formData.image);
 
-        const formData = new FormData();
-        formData.append("title", title);
-        formData.append("description", description);
-        if (image) formData.append("image", image);
-
-        if (cardToEdit.id) {
-            await updateCard(cardToEdit.id, formData); // Update existing card
-        } else {
-            await createCard(formData); // Create new card
-        }
-
-        navigate("/"); // Redirect to homepage after submission
+        existingCard.id ? await updateCard(existingCard.id, data) : await createCard(data);
+        navigate("/");
     };
 
     return (
         <Container>
-            <h2>{cardToEdit.id ? "Edit Card" : "Create Card"}</h2>
+            <h2>{existingCard.id ? "Edit Card" : "Create Card"}</h2>
             <Form onSubmit={handleSubmit}>
                 <Form.Group>
                     <Form.Label>Title</Form.Label>
-                    <Form.Control value={title} onChange={(e) => setTitle(e.target.value)} required />
+                    <Form.Control name="title" value={formData.title} onChange={handleChange} required />
                 </Form.Group>
                 <Form.Group>
                     <Form.Label>Description</Form.Label>
-                    <Form.Control value={description} onChange={(e) => setDescription(e.target.value)} required />
+                    <Form.Control name="description" value={formData.description} onChange={handleChange} required />
                 </Form.Group>
                 <Form.Group>
                     <Form.Label>Image</Form.Label>
-                    <Form.Control type="file" onChange={(e) => setImage(e.target.files[0])} />
+                    <Form.Control type="file" name="image" onChange={handleChange} />
                 </Form.Group>
-                <Button type="submit">{cardToEdit.id ? "Update" : "Create"}</Button>
+                <Button type="submit">{existingCard.id ? "Update" : "Create"}</Button>
             </Form>
         </Container>
     );
