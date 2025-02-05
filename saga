@@ -1,0 +1,174 @@
+action
+
+export const FETCH_CARDS_REQUEST = "FETCH_CARDS_REQUEST";
+export const FETCH_CARDS_SUCCESS = "FETCH_CARDS_SUCCESS";
+export const FETCH_CARDS_FAILURE = "FETCH_CARDS_FAILURE";
+
+export const CREATE_CARD_REQUEST = "CREATE_CARD_REQUEST";
+export const CREATE_CARD_SUCCESS = "CREATE_CARD_SUCCESS";
+export const CREATE_CARD_FAILURE = "CREATE_CARD_FAILURE";
+
+export const UPDATE_CARD_REQUEST = "UPDATE_CARD_REQUEST";
+export const UPDATE_CARD_SUCCESS = "UPDATE_CARD_SUCCESS";
+export const UPDATE_CARD_FAILURE = "UPDATE_CARD_FAILURE";
+
+export const DELETE_CARD_REQUEST = "DELETE_CARD_REQUEST";
+export const DELETE_CARD_SUCCESS = "DELETE_CARD_SUCCESS";
+export const DELETE_CARD_FAILURE = "DELETE_CARD_FAILURE";
+
+// Fetch Cards
+export const fetchCardsRequest = () => ({ type: FETCH_CARDS_REQUEST });
+export const fetchCardsSuccess = (cards) => ({ type: FETCH_CARDS_SUCCESS, payload: cards });
+export const fetchCardsFailure = (error) => ({ type: FETCH_CARDS_FAILURE, payload: error });
+
+// Create Card
+export const createCardRequest = (cardData) => ({ type: CREATE_CARD_REQUEST, payload: cardData });
+export const createCardSuccess = (card) => ({ type: CREATE_CARD_SUCCESS, payload: card });
+export const createCardFailure = (error) => ({ type: CREATE_CARD_FAILURE, payload: error });
+
+// Update Card
+export const updateCardRequest = (id, cardData) => ({ type: UPDATE_CARD_REQUEST, payload: { id, cardData } });
+export const updateCardSuccess = (updatedCard) => ({ type: UPDATE_CARD_SUCCESS, payload: updatedCard });
+export const updateCardFailure = (error) => ({ type: UPDATE_CARD_FAILURE, payload: error });
+
+// Delete Card
+export const deleteCardRequest = (id) => ({ type: DELETE_CARD_REQUEST, payload: id });
+export const deleteCardSuccess = (id) => ({ type: DELETE_CARD_SUCCESS, payload: id });
+export const deleteCardFailure = (error) => ({ type: DELETE_CARD_FAILURE, payload: error });
+
+
+reducer
+
+import {
+  FETCH_CARDS_SUCCESS,
+  FETCH_CARDS_FAILURE,
+  CREATE_CARD_SUCCESS,
+  CREATE_CARD_FAILURE,
+  UPDATE_CARD_SUCCESS,
+  UPDATE_CARD_FAILURE,
+  DELETE_CARD_SUCCESS,
+  DELETE_CARD_FAILURE
+} from "../actions/cardActions";
+
+const initialState = {
+  cards: [],
+  error: null,
+};
+
+const cardReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case FETCH_CARDS_SUCCESS:
+      return { ...state, cards: action.payload, error: null };
+
+    case FETCH_CARDS_FAILURE:
+    case CREATE_CARD_FAILURE:
+    case UPDATE_CARD_FAILURE:
+    case DELETE_CARD_FAILURE:
+      return { ...state, error: action.payload };
+
+    case CREATE_CARD_SUCCESS:
+      return { ...state, cards: [...state.cards, action.payload], error: null };
+
+    case UPDATE_CARD_SUCCESS:
+      return {
+        ...state,
+        cards: state.cards.map((card) =>
+          card.id === action.payload.id ? action.payload : card
+        ),
+      };
+
+    case DELETE_CARD_SUCCESS:
+      return {
+        ...state,
+        cards: state.cards.filter((card) => card.id !== action.payload),
+      };
+
+    default:
+      return state;
+  }
+};
+
+export default cardReducer;
+
+
+saga
+
+import { call, put, takeLatest } from "redux-saga/effects";
+import {
+  FETCH_CARDS_REQUEST,
+  fetchCardsSuccess,
+  fetchCardsFailure,
+  CREATE_CARD_REQUEST,
+  createCardSuccess,
+  createCardFailure,
+  UPDATE_CARD_REQUEST,
+  updateCardSuccess,
+  updateCardFailure,
+  DELETE_CARD_REQUEST,
+  deleteCardSuccess,
+  deleteCardFailure,
+} from "../actions/cardActions";
+
+import { fetchCards, createCard, updateCard, deleteCard } from "../../api/api";
+
+// Fetch Cards Saga
+function* fetchCardsSaga() {
+  try {
+    const cards = yield call(fetchCards);
+    yield put(fetchCardsSuccess(cards));
+  } catch (error) {
+    yield put(fetchCardsFailure(error.message));
+  }
+}
+
+// Create Card Saga
+function* createCardSaga(action) {
+  try {
+    const card = yield call(createCard, action.payload);
+    yield put(createCardSuccess(card));
+  } catch (error) {
+    yield put(createCardFailure(error.message));
+  }
+}
+
+// Update Card Saga
+function* updateCardSaga(action) {
+  try {
+    const updatedCard = yield call(updateCard, action.payload.id, action.payload.cardData);
+    yield put(updateCardSuccess(updatedCard));
+  } catch (error) {
+    yield put(updateCardFailure(error.message));
+  }
+}
+
+// Delete Card Saga
+function* deleteCardSaga(action) {
+  try {
+    yield call(deleteCard, action.payload);
+    yield put(deleteCardSuccess(action.payload));
+  } catch (error) {
+    yield put(deleteCardFailure(error.message));
+  }
+}
+
+export function* cardSaga() {
+  yield takeLatest(FETCH_CARDS_REQUEST, fetchCardsSaga);
+  yield takeLatest(CREATE_CARD_REQUEST, createCardSaga);
+  yield takeLatest(UPDATE_CARD_REQUEST, updateCardSaga);
+  yield takeLatest(DELETE_CARD_REQUEST, deleteCardSaga);
+}
+
+
+store
+
+import { createStore, applyMiddleware } from "redux";
+import createSagaMiddleware from "redux-saga";
+import rootReducer from "./reducers/rootReducer";
+import rootSaga from "./sagas/rootSaga";
+
+const sagaMiddleware = createSagaMiddleware();
+const store = createStore(rootReducer, applyMiddleware(sagaMiddleware));
+
+sagaMiddleware.run(rootSaga);
+
+export default store;
