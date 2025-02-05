@@ -172,3 +172,84 @@ const store = createStore(rootReducer, applyMiddleware(sagaMiddleware));
 sagaMiddleware.run(rootSaga);
 
 export default store;
+
+
+create 
+
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { Container, Button, Form, Alert } from "react-bootstrap";
+import { createCardRequest, updateCardRequest } from "../redux/actions/cardActions";
+
+function Create() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const cardData = useSelector((state) => state.card.currentCard) || {
+    title: "",
+    description: "",
+  };
+
+  const [formData, setFormData] = useState(cardData);
+  const [message, setMessage] = useState({ text: "", type: "" });
+
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!formData.title || !formData.description) {
+      return setMessage({ text: "Title and Description are required.", type: "danger" });
+    }
+
+    try {
+      if (formData.id) {
+        dispatch(updateCardRequest(formData.id, formData));
+        setMessage({ text: "Card updated successfully!", type: "success" });
+      } else {
+        dispatch(createCardRequest(formData));
+        setMessage({ text: "Card created successfully!", type: "success" });
+      }
+
+      setTimeout(() => {
+        setMessage({ text: "", type: "" });
+        navigate("/");
+      }, 2000);
+    } catch (err) {
+      console.error(err);
+      setMessage({ text: "An error occurred. Please try again.", type: "danger" });
+    }
+  };
+
+  return (
+    <Container>
+      <h2 className="my-4">{formData.id ? "Edit Card" : "Create Card"}</h2>
+      {message.text && <Alert variant={message.type}>{message.text}</Alert>}
+      <Form onSubmit={handleSubmit}>
+        <Form.Group className="mb-3">
+          <Form.Label>Title</Form.Label>
+          <Form.Control type="text" name="title" value={formData.title} onChange={handleChange} required />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Description</Form.Label>
+          <Form.Control as="textarea" rows={3} name="description" value={formData.description} onChange={handleChange} required />
+        </Form.Group>
+
+        <Button variant="primary" type="submit">
+          {formData.id ? "Update" : "Create"}
+        </Button>
+      </Form>
+    </Container>
+  );
+}
+
+export default Create;
+
