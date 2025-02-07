@@ -253,3 +253,8 @@ function Create() {
 
 export default Create;
 
+
+
+{formData.title && (formData.title.length < 3 || formData.title.length > 50) && (
+            <small className="text-danger">Title must be between 3 and 50 characters.</small>
+          )}
