@@ -258,3 +258,11 @@ export default Create;
 {formData.title && (formData.title.length < 3 || formData.title.length > 50) && (
             <small className="text-danger">Title must be between 3 and 50 characters.</small>
           )}
+
+
+
+{/* Show error message if API fails */}
+      {error && <Alert variant="danger">{error}</Alert>}
+
+      {/* Show loading spinner while fetching data */}
+      {loading && <Spinner animation="border" role="status" />}
