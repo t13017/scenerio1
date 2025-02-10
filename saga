@@ -286,4 +286,203 @@ image size
   height: 100%;
   object-fit: cover; /* Ensures image covers the area without distortion */
 }
+///
+.card-body {
+  padding: 15px;
+  text-align: center;
+}
 
+.card-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #007bff;
+}
+
+.card-text {
+  font-size: 1rem;
+  color: #666;
+}
+
+/* Button Styling */
+.btn-custom {
+  background: linear-gradient(to right, #007bff, #00c6ff);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.btn-custom:hover {
+  background: linear-gradient(to right, #0056b3, #0080ff);
+  transform: scale(1.05);
+}
+
+/* Form Styling */
+.form-control {
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  transition: border 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0px 0px 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Alert Box */
+.alert {
+  border-radius: 5px;
+  text-align: center;
+  font-weight: bold;
+  padding: 12px;
+}
+🔹 Updated UI for HomePage.jsx
+jsx
+Copy code
+import { useEffect } from "react";
+import { Container, Card, Button } from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCardsRequest } from "../redux/actions/cardActions";
+
+function HomePage() {
+  const dispatch = useDispatch();
+  const { cards, error } = useSelector((state) => state.card);
+
+  useEffect(() => {
+    dispatch(fetchCardsRequest());
+  }, [dispatch]);
+
+  return (
+    <Container className="mt-4">
+      <h2 className="text-center mb-4">📌 Your Cards</h2>
+      
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      <div className="row">
+        {cards.map((card) => (
+          <div key={card.id} className="col-md-4 mb-4">
+            <Card className="card">
+              <div className="image-container">
+                <Card.Img variant="top" src={card.image} className="card-image" />
+              </div>
+              <Card.Body>
+                <Card.Title className="card-title">{card.title}</Card.Title>
+                <Card.Text className="card-text">{card.description}</Card.Text>
+                <Button className="btn-custom">View Details</Button>
+              </Card.Body>
+            </Card>
+          </div>
+        ))}
+      </div>
+    </Container>
+  );
+}
+
+export default HomePage;
+🔹 Updated UI for Create.jsx
+jsx
+Copy code
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { Container, Button, Form, Alert } from "react-bootstrap";
+import { createCardRequest } from "../redux/actions/cardActions";
+
+function Create() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    image: null,
+  });
+  const [message, setMessage] = useState({ text: "", type: "" });
+
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (formData.title.length < 5) {
+      return setMessage({ text: "Title must be at least 5 characters.", type: "danger" });
+    }
+    if (formData.description.length < 10) {
+      return setMessage({ text: "Description must be at least 10 characters.", type: "danger" });
+    }
+
+    try {
+      dispatch(createCardRequest(formData));
+      setMessage({ text: "Card created successfully!", type: "success" });
+
+      setTimeout(() => {
+        setMessage({ text: "", type: "" });
+        navigate("/");
+      }, 2000);
+    } catch (err) {
+      console.error(err);
+      setMessage({ text: "An error occurred. Please try again.", type: "danger" });
+    }
+  };
+
+  return (
+    <Container>
+      <h2 className="my-4">📝 Create a New Card</h2>
+      {message.text && <Alert variant={message.type}>{message.text}</Alert>}
+      
+      <Form onSubmit={handleSubmit} className="shadow p-4 rounded">
+        <Form.Group className="mb-3">
+          <Form.Label>Title</Form.Label>
+          <Form.Control type="text" name="title" value={formData.title} onChange={handleChange} required />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Description</Form.Label>
+          <Form.Control as="textarea" rows={3} name="description" value={formData.description} onChange={handleChange} required />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Image</Form.Label>
+          <Form.Control type="file" name="image" accept="image/*" onChange={handleChange} />
+        </Form.Group>
+
+        <Button className="btn-custom" type="submit">
+          Create Card
+        </Button>
+      </Form>
+    </Container>
+  );
+}
+
+export default Create;
+🚀 Final Enhancements
+✅ Modern card layout with hover effects
+✅ Gradient buttons & smooth animations
+✅ Styled form inputs with focus effect
+✅ Error handling & success messages
+✅ Consistent image sizes with aspect ratio fix
+
+Your project will now look clean, modern, and interactive! 🎨 Let me know if you need more refinements! 🚀
+
+
+
+
+
+
+
+
+
+
+
+Search
+
+Reason
