@@ -266,3 +266,24 @@ export default Create;
 
       {/* Show loading spinner while fetching data */}
       {loading && <Spinner animation="border" role="status" />}
+
+
+
+image size
+
+.image-container {
+  width: 100%;
+  height: 200px; /* Fixed height for uniformity */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; /* Prevents overflow */
+  background-color: #f8f9fa; /* Optional: Adds background if image is smaller */
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures image covers the area without distortion */
+}
+
