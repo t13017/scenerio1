@@ -477,7 +477,27 @@ Your project will now look clean, modern, and interactive! 🎨 Let me know if y
 
 
 
+image size 
 
+if (name === "image") {
+      const file = files[0];
+
+      // 🔹 Validate file type
+      const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+      if (file && !validTypes.includes(file.type)) {
+        return setMessage({ text: "Only JPG, JPEG, and PNG files are allowed.", type: "danger" });
+      }
+
+      // 🔹 Validate file size (max 2MB)
+      if (file && file.size > 2 * 1024 * 1024) {
+        return setMessage({ text: "File size should not exceed 2MB.", type: "danger" });
+      }
+
+      setFormData((prev) => ({ ...prev, image: file }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
 
 
 
